@@ -1,0 +1,983 @@
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>가상 주식 투자 게임 Pro</title>
+
+<style>
+/* Reset and Base Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #0b0f19;
+    color: #f3f4f6;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 12px;
+}
+
+/* Glassmorphism Container */
+.game-container {
+    width: 100%;
+    max-width: 860px;
+    background: #151b28;
+    border: 1px solid #232d42;
+    border-radius: 20px;
+    padding: 28px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+/* Header */
+header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+header h1 {
+    font-size: 26px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 6px;
+}
+
+header p {
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+/* Status Cards */
+.status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.status-card {
+    background: #1e2638;
+    border: 1px solid #2c374e;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+}
+
+.status-label {
+    font-size: 13px;
+    color: #9da7b8;
+    margin-bottom: 6px;
+}
+
+.status-value {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.money-val { color: #4ade80; }
+.target-val { color: #facc15; }
+
+/* Progress Bar */
+.progress-box {
+    background: #1a2130;
+    border: 1px solid #283247;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 24px;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #9ca3af;
+    margin-bottom: 8px;
+}
+
+.progress-track {
+    width: 100%;
+    height: 12px;
+    background: #283247;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #10b981, #38bdf8);
+    transition: width 0.4s ease-out;
+}
+
+/* Section Title */
+.section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #e5e7eb;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Stock Selection Grid */
+.stock-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.stock-card {
+    background: #1e2638;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    padding: 14px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.stock-card:hover {
+    transform: translateY(-3px);
+    border-color: #3b82f6;
+}
+
+.stock-card.selected {
+    border-color: #38bdf8;
+    background: #193852;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+}
+
+.stock-symbol {
+    font-size: 18px;
+    font-weight: 800;
+    color: #38bdf8;
+    margin-bottom: 4px;
+}
+
+.stock-name {
+    font-size: 12px;
+    color: #cbd5e1;
+    font-weight: 600;
+}
+
+/* Investment Form */
+.investment-card {
+    background: #1a2130;
+    border: 1px solid #283247;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.quick-btns {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.quick-btn {
+    background: #263147;
+    border: 1px solid #374563;
+    color: #cbd5e1;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.quick-btn:hover {
+    background: #344463;
+    color: #ffffff;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+input[type="number"] {
+    width: 100%;
+    background: #0f141f;
+    border: 1px solid #334155;
+    color: #ffffff;
+    border-radius: 10px;
+    padding: 14px 45px 14px 16px;
+    font-size: 18px;
+    font-weight: 700;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input[type="number"]:focus {
+    border-color: #38bdf8;
+}
+
+/* Hide number input spinners */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+
+.input-unit {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 15px;
+}
+
+.btn-group {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 10px;
+}
+
+button {
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.hint-btn {
+    background: #d97706;
+    color: white;
+    padding: 14px 10px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.hint-btn:hover:not(:disabled) { background: #b45309; }
+
+.start-btn {
+    background: #2563eb;
+    color: white;
+    padding: 14px;
+    font-size: 16px;
+}
+
+.start-btn:hover:not(:disabled) { background: #1d4ed8; }
+
+/* Hint Box Output */
+.hint-box {
+    display: none;
+    margin-top: 14px;
+    padding: 14px;
+    background: #2d2315;
+    border: 1px solid #d97706;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.hint-box.show { display: block; }
+
+.hint-title {
+    font-size: 12px;
+    color: #fbbf24;
+    margin-bottom: 4px;
+}
+
+.hint-text {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fef08a;
+}
+
+/* Chart Simulation Overlay */
+.chart-sim {
+    display: none;
+    background: #0f141f;
+    border: 1px solid #38bdf8;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.chart-sim.show { display: block; }
+
+.chart-svg {
+    width: 100%;
+    height: 90px;
+    margin-top: 10px;
+}
+
+/* Investment Result Card */
+.result-card {
+    display: none;
+    background: #1e2638;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.result-card.show { display: block; }
+
+.result-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.profit-text { color: #4ade80; }
+.loss-text { color: #f87171; }
+.even-text { color: #cbd5e1; }
+
+.result-msg {
+    font-size: 14px;
+    color: #94a3b8;
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+.multiplier-badge {
+    font-size: 22px;
+    font-weight: 800;
+    color: #facc15;
+    margin: 10px 0;
+}
+
+.continue-btn {
+    width: 100%;
+    background: #059669;
+    color: white;
+    padding: 14px;
+    font-size: 15px;
+    margin-top: 14px;
+}
+
+.continue-btn:hover { background: #047857; }
+
+/* Trading History */
+.history-card {
+    background: #111622;
+    border: 1px solid #1f293d;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.history-list {
+    max-height: 180px;
+    overflow-y: auto;
+    margin-top: 10px;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 4px;
+    border-bottom: 1px solid #1d2638;
+    font-size: 13px;
+}
+
+.history-item:last-child { border-bottom: none; }
+
+/* End Screens (Win / Lose) */
+.end-screen {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.end-screen.show { display: block; }
+
+.end-title {
+    font-size: 38px;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.win-title { color: #4ade80; }
+.lose-title { color: #f87171; }
+
+.end-desc {
+    font-size: 15px;
+    color: #9ca3af;
+    margin-bottom: 24px;
+}
+
+.restart-btn {
+    background: #2563eb;
+    color: white;
+    padding: 14px 28px;
+    font-size: 16px;
+}
+
+.restart-btn:hover { background: #1d4ed8; }
+
+/* Custom Modal Alert */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal-content {
+    background: #1e2638;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 20px;
+    width: 300px;
+    text-align: center;
+}
+
+.modal-text {
+    font-size: 14px;
+    color: #e5e7eb;
+    margin-bottom: 16px;
+}
+
+.modal-btn {
+    width: 100%;
+    background: #3b82f6;
+    color: white;
+    padding: 10px;
+    font-size: 14px;
+}
+
+/* Responsive Utilities */
+@media (max-width: 680px) {
+    .stock-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .btn-group {
+        grid-template-columns: 1fr;
+    }
+    .status-value {
+        font-size: 20px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="game-container">
+    <header>
+        <h1>📈 가상 주식 투자 게임</h1>
+        <p>전설의 트레이더가 되어 초기 자금 10만원을 400만원(40배)으로 불려보세요!</p>
+    </header>
+
+    <!-- MAIN GAME SCREEN -->
+    <div id="mainScreen">
+        <!-- Status Header -->
+        <div class="status-grid">
+            <div class="status-card">
+                <div class="status-label">현재 보유 자금</div>
+                <div id="money" class="status-value money-val">100,000원</div>
+            </div>
+            <div class="status-card">
+                <div class="status-label">목표 달성 금액</div>
+                <div id="target" class="status-value target-val">4,000,000원</div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-box">
+            <div class="progress-info">
+                <span>목표 진행률</span>
+                <span id="progressText">2.5%</span>
+            </div>
+            <div class="progress-track">
+                <div id="progressBar" class="progress-fill"></div>
+            </div>
+        </div>
+
+        <!-- Stock List -->
+        <div class="section-title">📊 종목 선택</div>
+        <div class="stock-grid" id="stockGrid">
+            <div class="stock-card" data-stock="A">
+                <div class="stock-symbol">ALP</div>
+                <div class="stock-name">미희디자인</div>
+            </div>
+            <div class="stock-card" data-stock="B">
+                <div class="stock-symbol">NEX</div>
+                <div class="stock-name">초원호프</div>
+            </div>
+            <div class="stock-card" data-stock="C">
+                <div class="stock-symbol">BIO</div>
+                <div class="stock-name">진수현미농장</div>
+            </div>
+            <div class="stock-card" data-stock="D">
+                <div class="stock-symbol">CAR</div>
+                <div class="stock-name">다이어트방지협회</div>
+            </div>
+            <div class="stock-card" data-stock="E">
+                <div class="stock-symbol">SOL</div>
+                <div class="stock-name">찬주프로그램</div>
+            </div>
+        </div>
+
+        <!-- Investment Controls -->
+        <div class="investment-card">
+            <div class="section-title">💰 투자 금액 입력</div>
+            
+            <div class="quick-btns">
+                <button type="button" class="quick-btn" data-ratio="0.25">25%</button>
+                <button type="button" class="quick-btn" data-ratio="0.5">50%</button>
+                <button type="button" class="quick-btn" data-ratio="1.0">전액</button>
+                <button type="button" class="quick-btn" data-add="10000">+1만</button>
+                <button type="button" class="quick-btn" data-add="100000">+10만</button>
+            </div>
+
+            <div class="input-group">
+                <input id="investmentAmount" type="number" min="1" placeholder="투자 금액 입력" />
+                <span class="input-unit">원</span>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" id="hintButton" class="hint-btn">
+                    🔮 Market 힌트<br><span style="font-size:11px; font-weight:normal;">(비용: 5,000원)</span>
+                </button>
+                <button type="button" id="startButton" class="start-btn">투자 시작</button>
+            </div>
+
+            <div id="hintBox" class="hint-box">
+                <div class="hint-title">🔮 시장 정보 분석</div>
+                <div id="hintText" class="hint-text">-</div>
+            </div>
+        </div>
+
+        <!-- Simulation Animated Chart -->
+        <div id="chartSim" class="chart-sim">
+            <div style="font-size:14px; font-weight:700; color:#38bdf8;">⚡ 시장 시뮬레이션 및 변동성 계산 중...</div>
+            <svg class="chart-svg" viewBox="0 0 300 80" preserveAspectRatio="none">
+                <path id="chartPath" d="M 0 40 Q 75 40, 150 40 T 300 40" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <!-- Result Box -->
+        <div id="resultCard" class="result-card">
+            <div id="resultTitle" class="result-title">결과</div>
+            <div id="resultMessage" class="result-msg"></div>
+            <div id="multiplier" class="multiplier-badge"></div>
+            <div id="resultMoney" style="font-size:14px; color:#e5e7eb;"></div>
+            <button type="button" id="continueButton" class="continue-btn">다음 투자 진행</button>
+        </div>
+
+        <!-- History -->
+        <div class="history-card">
+            <div class="section-title">📋 최근 거래 기록</div>
+            <div id="historyList" class="history-list">
+                <div style="text-align:center; color:#64748b; padding:12px; font-size:13px;">아직 투자 기록이 없습니다.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WIN SCREEN -->
+    <div id="winScreen" class="end-screen">
+        <div class="end-title win-title">🎉 투자 승리!</div>
+        <p class="end-desc">목표 금액인 4,000,000원(40배) 달성에 성공하셨습니다!</p>
+        <button type="button" id="restartWinButton" class="restart-btn">게임 다시 시작</button>
+    </div>
+
+    <!-- LOSE SCREEN -->
+    <div id="loseScreen" class="end-screen">
+        <div class="end-title lose-title">💥 파산 (GAME OVER)</div>
+        <p class="end-desc">보유 자금이 모두 소진되었습니다.</p>
+        <button type="button" id="restartLoseButton" class="restart-btn">다시 도전하기</button>
+    </div>
+</div>
+
+<!-- MODAL ALERT -->
+<div id="modalOverlay" class="modal-overlay">
+    <div class="modal-content">
+        <div id="modalText" class="modal-text">알림 메세지</div>
+        <button type="button" id="modalCloseBtn" class="modal-btn">확인</button>
+    </div>
+</div>
+
+<script>
+"use strict";
+
+// ====================================
+// Game Configuration
+// ====================================
+const START_MONEY = 100000;
+const TARGET_MONEY = START_MONEY * 40; // 4,000,000 KRW
+const HINT_COST = 5000;
+
+let money = START_MONEY;
+let selectedStock = null;
+let currentHint = null;
+let gameOver = false;
+
+const stocks = {
+    A: "미희디자인",
+    B: "초원호프",
+    C: "진수현미농장",
+    D: "다이어트방지협회",
+    E: "찬주프로그램"
+};
+
+// ====================================
+// DOM Elements
+// ====================================
+const moneyElement = document.getElementById("money");
+const targetElement = document.getElementById("target");
+const progressBar = document.getElementById("progressBar");
+const progressText = document.getElementById("progressText");
+const investmentInput = document.getElementById("investmentAmount");
+const startButton = document.getElementById("startButton");
+const hintButton = document.getElementById("hintButton");
+const hintBox = document.getElementById("hintBox");
+const hintText = document.getElementById("hintText");
+const chartSim = document.getElementById("chartSim");
+const chartPath = document.getElementById("chartPath");
+const resultCard = document.getElementById("resultCard");
+const resultTitle = document.getElementById("resultTitle");
+const resultMessage = document.getElementById("resultMessage");
+const multiplier = document.getElementById("multiplier");
+const resultMoney = document.getElementById("resultMoney");
+const continueButton = document.getElementById("continueButton");
+const historyList = document.getElementById("historyList");
+const mainScreen = document.getElementById("mainScreen");
+const winScreen = document.getElementById("winScreen");
+const loseScreen = document.getElementById("loseScreen");
+const restartWinButton = document.getElementById("restartWinButton");
+const restartLoseButton = document.getElementById("restartLoseButton");
+const modalOverlay = document.getElementById("modalOverlay");
+const modalText = document.getElementById("modalText");
+const modalCloseBtn = document.getElementById("modalCloseBtn");
+
+// ====================================
+// Utility Functions
+// ====================================
+function showModal(msg) {
+    modalText.textContent = msg;
+    modalOverlay.classList.add("show");
+}
+
+function hideModal() {
+    modalOverlay.classList.remove("show");
+}
+
+modalCloseBtn.addEventListener("click", hideModal);
+
+function formatMoney(value) {
+    return Math.floor(value).toLocaleString("ko-KR") + "원";
+}
+
+function updateDisplay() {
+    moneyElement.textContent = formatMoney(money);
+    targetElement.textContent = formatMoney(TARGET_MONEY);
+
+    let progress = (money / TARGET_MONEY) * 100;
+    progress = Math.min(Math.max(progress, 0), 100);
+
+    progressBar.style.width = progress + "%";
+    progressText.textContent = progress.toFixed(1) + "%";
+}
+
+// ====================================
+// Stock Selection & Inputs
+// ====================================
+document.querySelectorAll(".stock-card").forEach(card => {
+    card.addEventListener("click", function() {
+        if (gameOver) return;
+
+        document.querySelectorAll(".stock-card").forEach(c => c.classList.remove("selected"));
+        this.classList.add("selected");
+        selectedStock = this.dataset.stock;
+
+        // Reset current hint upon choosing new stock
+        currentHint = null;
+        hintBox.classList.remove("show");
+    });
+});
+
+document.querySelectorAll(".quick-btn").forEach(btn => {
+    btn.addEventListener("click", function() {
+        if (gameOver) return;
+
+        let currentVal = Number(investmentInput.value) || 0;
+        if (this.dataset.ratio) {
+            const ratio = parseFloat(this.dataset.ratio);
+            investmentInput.value = Math.floor(money * ratio);
+        } else if (this.dataset.add) {
+            const addVal = parseInt(this.dataset.add, 10);
+            investmentInput.value = Math.min(money, currentVal + addVal);
+        }
+    });
+});
+
+// ====================================
+// Hint Purchase Logic
+// ====================================
+hintButton.addEventListener("click", function() {
+    if (gameOver) return;
+
+    if (!selectedStock) {
+        showModal("먼저 투자할 종목을 선택해주세요.");
+        return;
+    }
+
+    if (currentHint !== null) {
+        showModal("이미 이번 시장의 힌트를 확인하셨습니다.");
+        return;
+    }
+
+    if (money < HINT_COST) {
+        showModal("힌트를 구매하기 위한 자금이 부족합니다. (5,000원 필요)");
+        return;
+    }
+
+    money -= HINT_COST;
+
+    const rand = Math.random();
+    if (rand < 0.15) {
+        currentHint = "강한 상승 가능성 ↑↑";
+    } else if (rand < 0.35) {
+        currentHint = "상승 가능성이 있습니다 ↑";
+    } else if (rand < 0.55) {
+        currentHint = "시장 흐름이 불안정합니다 ⚠";
+    } else if (rand < 0.75) {
+        currentHint = "하락 가능성에 주의하세요 ↓";
+    } else if (rand < 0.90) {
+        currentHint = "큰 변동이 예상됩니다 ⚠⚠";
+    } else {
+        currentHint = "대박 기회가 숨어 있을지도? 💎";
+    }
+
+    hintText.textContent = currentHint;
+    hintBox.classList.add("show");
+
+    updateDisplay();
+});
+
+// ====================================
+// Investment Logic
+// ====================================
+startButton.addEventListener("click", function() {
+    if (gameOver) return;
+
+    if (!selectedStock) {
+        showModal("투자할 종목을 선택해주세요.");
+        return;
+    }
+
+    const investment = Number(investmentInput.value);
+
+    if (!investment || investment <= 0) {
+        showModal("올바른 투자 금액을 입력해주세요.");
+        return;
+    }
+
+    if (investment > money) {
+        showModal("보유 자금보다 크게 투자할 수 없습니다.");
+        return;
+    }
+
+    playInvestment(investment);
+});
+
+function playInvestment(investment) {
+    startButton.disabled = true;
+    hintButton.disabled = true;
+
+    // Determine multiplier probabilistically
+    const rand = Math.random();
+    let multiplierValue = 1;
+
+    if (rand < 0.15) multiplierValue = 0;
+    else if (rand < 0.35) multiplierValue = 0.5;
+    else if (rand < 0.50) multiplierValue = 0.8;
+    else if (rand < 0.65) multiplierValue = 1.0;
+    else if (rand < 0.80) multiplierValue = 1.5;
+    else if (rand < 0.90) multiplierValue = 2.0;
+    else if (rand < 0.96) multiplierValue = 3.0;
+    else if (rand < 0.99) multiplierValue = 5.0;
+    else multiplierValue = 10.0;
+
+    // Apply hint influence
+    if (currentHint !== null) {
+        if (currentHint.includes("강한 상승") && Math.random() < 0.65) {
+            multiplierValue = Math.max(multiplierValue, 1.5);
+        } else if (currentHint.includes("상승 가능") && Math.random() < 0.60) {
+            multiplierValue = Math.max(multiplierValue, 1.2);
+        } else if (currentHint.includes("하락") && Math.random() < 0.65) {
+            multiplierValue = Math.min(multiplierValue, 0.8);
+        } else if (currentHint.includes("큰 변동") && Math.random() < 0.50) {
+            const options = [0, 0.5, 3.0, 5.0];
+            multiplierValue = options[Math.floor(Math.random() * options.length)];
+        } else if (currentHint.includes("대박") && Math.random() < 0.35) {
+            multiplierValue = Math.max(multiplierValue, 3.0);
+        }
+    }
+
+    // Chart Animation Simulation
+    chartSim.classList.add("show");
+    resultCard.classList.remove("show");
+
+    let count = 0;
+    const simInterval = setInterval(() => {
+        count++;
+        let p1 = 40 + (Math.random() * 30 - 15);
+        let p2 = 40 + (Math.random() * 50 - 25);
+        let endY = multiplierValue >= 1 ? 15 : 65;
+
+        chartPath.setAttribute("d", `M 0 40 Q 75 ${p1}, 150 ${p2} T 300 ${endY}`);
+
+        if (count >= 20) {
+            clearInterval(simInterval);
+            chartSim.classList.remove("show");
+
+            const returnedMoney = investment * multiplierValue;
+            money = money - investment + returnedMoney;
+
+            showResult(investment, multiplierValue, returnedMoney);
+
+            currentHint = null;
+            hintBox.classList.remove("show");
+
+            updateDisplay();
+
+            if (money >= TARGET_MONEY) {
+                setTimeout(() => endGame(true), 1000);
+            } else if (money <= 0) {
+                setTimeout(() => endGame(false), 1000);
+            }
+        }
+    }, 50);
+}
+
+// Show Result View
+function showResult(investment, multiplierValue, returnedMoney) {
+    resultCard.classList.add("show");
+
+    const profit = returnedMoney - investment;
+
+    if (profit > 0) {
+        resultTitle.textContent = "📈 수익 발생!";
+        resultTitle.className = "result-title profit-text";
+        resultMessage.innerHTML = `
+            <strong>[${stocks[selectedStock]}]</strong> 투자 성공!<br>
+            투자금: ${formatMoney(investment)} | 수익금: <span class="profit-text">+${formatMoney(profit)}</span>
+        `;
+    } else if (profit < 0) {
+        resultTitle.textContent = "📉 손실 발생";
+        resultTitle.className = "result-title loss-text";
+        resultMessage.innerHTML = `
+            <strong>[${stocks[selectedStock]}]</strong> 투자 결과<br>
+            투자금: ${formatMoney(investment)} | 손실금: <span class="loss-text">${formatMoney(profit)}</span>
+        `;
+    } else {
+        resultTitle.textContent = "➖ 본전 보존";
+        resultTitle.className = "result-title even-text";
+        resultMessage.innerHTML = `투자금 변동 없이 원금을 그대로 돌려받았습니다.`;
+    }
+
+    multiplier.textContent = `배율: ${multiplierValue}배`;
+    resultMoney.innerHTML = `이번 투자 반환금: <strong>${formatMoney(returnedMoney)}</strong>`;
+
+    addHistory(investment, multiplierValue, profit);
+}
+
+continueButton.addEventListener("click", function() {
+    resultCard.classList.remove("show");
+    investmentInput.value = "";
+    selectedStock = null;
+
+    document.querySelectorAll(".stock-card").forEach(c => c.classList.remove("selected"));
+
+    startButton.disabled = false;
+    hintButton.disabled = false;
+    updateDisplay();
+});
+
+// History Tracking
+function addHistory(investment, multiplierValue, profit) {
+    if (historyList.textContent.includes("아직 투자 기록이 없습니다.")) {
+        historyList.innerHTML = "";
+    }
+
+    const item = document.createElement("div");
+    item.className = "history-item";
+
+    const profitText = profit >= 0 ? "+" + formatMoney(profit) : formatMoney(profit);
+    const profitClass = profit >= 0 ? "profit-text" : "loss-text";
+
+    item.innerHTML = `
+        <span><strong>[${stocks[selectedStock]}]</strong> ${multiplierValue}배</span>
+        <span class="${profitClass}" style="font-weight:700;">${profitText}</span>
+    `;
+
+    historyList.prepend(item);
+}
+
+// Game End & Reset
+function endGame(isWin) {
+    gameOver = true;
+    mainScreen.style.display = "none";
+
+    if (isWin) {
+        winScreen.classList.add("show");
+    } else {
+        loseScreen.classList.add("show");
+    }
+}
+
+function restartGame() {
+    money = START_MONEY;
+    selectedStock = null;
+    currentHint = null;
+    gameOver = false;
+
+    mainScreen.style.display = "block";
+    winScreen.classList.remove("show");
+    loseScreen.classList.remove("show");
+    resultCard.classList.remove("show");
+    hintBox.classList.remove("show");
+
+    investmentInput.value = "";
+    document.querySelectorAll(".stock-card").forEach(c => c.classList.remove("selected"));
+
+    historyList.innerHTML = `<div style="text-align:center; color:#64748b; padding:12px; font-size:13px;">아직 투자 기록이 없습니다.</div>`;
+
+    startButton.disabled = false;
+    hintButton.disabled = false;
+
+    updateDisplay();
+}
+
+restartWinButton.addEventListener("click", restartGame);
+restartLoseButton.addEventListener("click", restartGame);
+
+// Initial Display Sync
+updateDisplay();
+</script>
+</body>
+</html>
+```
